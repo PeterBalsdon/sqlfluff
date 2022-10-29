@@ -79,7 +79,7 @@ class Selectable:
                 reference_buffer=[],
                 select_targets=[],
                 col_aliases=[],
-                using_cols=[]
+                using_cols=[],
             )
 
     def get_wildcard_info(self) -> List[WildcardInfo]:
@@ -90,41 +90,7 @@ class Selectable:
         if not self.select_info:
             return buff
         for seg in self.select_info.select_targets: # these are select_clause_elements
-            #print(f"seg = {seg.raw}")
-            if seg.get_child("wildcard_expression"):
-                if "." in seg.raw:
-                    # The wildcard specifies a target table.
-                    table = seg.raw.rsplit(".", 1)[0]
-                    buff.append(WildcardInfo(seg, [table]))
-                else:
-                    # The wildcard is unqualified (i.e. does not specify a
-                    # table). This means to include all columns from all the
-                    # tables in the query.
-                    buff.append(
-                        WildcardInfo(
-                            seg,
-                            [
-                                alias_info.ref_str
-                                if alias_info.aliased
-                                else alias_info.from_expression_element.raw
-                                for alias_info in self.select_info.table_aliases
-                                if alias_info.ref_str
-                            ],
-                        )
-                    )
-        return buff
 
-    '''
-    def get_sources(self) -> List[FromExpressionElementSegment]:
-        #"""List all FROM and JOIN sources in query"""
-        buff: List[FromExpressionElementSegment] = []
-        # Some select-like statements don't have select_info
-        
-        # (e.g. test_exasol_invalid_foreign_key_from)
-        if not self.select_info:
-            return buff
-        for seg in self.select_info.select_targets: # these are select_clause_elements
-            print(f"seg = {seg.raw}")
             if seg.get_child("wildcard_expression"):
                 if "." in seg.raw:
                     # The wildcard specifies a target table.
@@ -147,7 +113,6 @@ class Selectable:
                         )
                     )
         return buff
-        '''
 
     def find_alias(self, table: str) -> Optional[AliasInfo]:
         """Find corresponding table_aliases entry (if any) matching "table"."""
@@ -235,7 +200,7 @@ class Query:
                     if cte:
                         # It's a CTE.
                         yield cte
-                        continue
+                        #continue
                 # It's an external table OR subquery
                 if return_segment:
                     yield seg
