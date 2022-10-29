@@ -80,6 +80,7 @@ class Selectable:
                 select_targets=[],
                 col_aliases=[],
                 using_cols=[],
+                from_expression_elements=[]
             )
 
     def get_wildcard_info(self) -> List[WildcardInfo]:
@@ -89,7 +90,8 @@ class Selectable:
         # (e.g. test_exasol_invalid_foreign_key_from)
         if not self.select_info:
             return buff
-        for seg in self.select_info.select_targets:
+        for seg in self.select_info.select_targets: # these are select_clause_elements
+            #print(f"seg = {seg.raw}")
             if seg.get_child("wildcard_expression"):
                 if "." in seg.raw:
                     # The wildcard specifies a target table.
@@ -112,6 +114,41 @@ class Selectable:
                         )
                     )
         return buff
+
+    '''
+    def get_sources(self) -> List[FromExpressionElementSegment]:
+        #"""List all FROM and JOIN sources in query"""
+        buff: List[FromExpressionElementSegment] = []
+        # Some select-like statements don't have select_info
+        
+        # (e.g. test_exasol_invalid_foreign_key_from)
+        if not self.select_info:
+            return buff
+        for seg in self.select_info.select_targets: # these are select_clause_elements
+            print(f"seg = {seg.raw}")
+            if seg.get_child("wildcard_expression"):
+                if "." in seg.raw:
+                    # The wildcard specifies a target table.
+                    table = seg.raw.rsplit(".", 1)[0]
+                    buff.append(WildcardInfo(seg, [table]))
+                else:
+                    # The wildcard is unqualified (i.e. does not specify a
+                    # table). This means to include all columns from all the
+                    # tables in the query.
+                    buff.append(
+                        WildcardInfo(
+                            seg,
+                            [
+                                alias_info.ref_str
+                                if alias_info.aliased
+                                else alias_info.from_expression_element.raw
+                                for alias_info in self.select_info.table_aliases
+                                if alias_info.ref_str
+                            ],
+                        )
+                    )
+        return buff
+        '''
 
     def find_alias(self, table: str) -> Optional[AliasInfo]:
         """Find corresponding table_aliases entry (if any) matching "table"."""
@@ -167,7 +204,7 @@ class Query:
             return None
 
     def crawl_sources(
-        self, segment: BaseSegment, recurse_into=True, pop=False, lookup_cte=True
+        self, segment: BaseSegment, recurse_into=True, pop=False, lookup_cte=True, return_segment=False
     ) -> Generator[Union[str, "Query"], None, None]:
         """Find SELECTs, table refs, or value table function calls in segment.
 
@@ -199,8 +236,11 @@ class Query:
                     if cte:
                         # It's a CTE.
                         yield cte
-                # It's an external table.
-                yield seg.raw
+                if return_segment:
+                    print(f"seg = {seg.raw}")
+                    yield seg
+                else:
+                    yield seg.raw
             else:
                 assert seg.is_type(
                     "set_expression", "select_statement", "values_clause"
