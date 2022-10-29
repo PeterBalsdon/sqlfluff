@@ -79,8 +79,7 @@ class Selectable:
                 reference_buffer=[],
                 select_targets=[],
                 col_aliases=[],
-                using_cols=[],
-                from_expression_elements=[]
+                using_cols=[]
             )
 
     def get_wildcard_info(self) -> List[WildcardInfo]:
@@ -236,8 +235,9 @@ class Query:
                     if cte:
                         # It's a CTE.
                         yield cte
+                        continue
+                # It's an external table OR subquery
                 if return_segment:
-                    print(f"seg = {seg.raw}")
                     yield seg
                 else:
                     yield seg.raw

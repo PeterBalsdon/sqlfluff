@@ -1,6 +1,3 @@
-from inspect import getmembers
-from pprint import pprint
-
 """Implementation of Rule L044."""
 from typing import Optional
 
@@ -95,24 +92,19 @@ class Rule_L044(BaseRule):
         # Recursively walk from the given query (select_info_list) to any
         # wildcard columns in the select targets. If every wildcard evdentually
         # resolves to a query without wildcards, all is well. Otherwise, warn.
-        
-        self.logger.debug(query.as_json())
-        
         if not query.selectables:
             return  # pragma: no cover
         for selectable in query.selectables:
             self.logger.debug(f"Analyzing query: {selectable.selectable.raw}")
-            #for source in query.crawl_sources(selectable.selectable, recurse_into = True, pop=True):
-                #self.logger.debug(source)
             for wildcard in selectable.get_wildcard_info():
                 if wildcard.tables:
                     for wildcard_table in wildcard.tables:
                         self.logger.debug(
-                            f"Wildcard: {wildcard.segment.raw} has target {wildcard_table}"
+                            f"Wildcard: {wildcard.segment.raw} has target "
+                            "{wildcard_table}"
                         )
                         # Is it an alias?
                         alias_info = selectable.find_alias(wildcard_table)
-
                         if alias_info:
                             # Found the alias matching the wildcard. Recurse,
                             # analyzing the query associated with that alias.
@@ -121,9 +113,6 @@ class Rule_L044(BaseRule):
                             # Not an alias. Is it a CTE?
                             cte = query.lookup_cte(wildcard_table)
                             if cte:
-                                self.logger.debug(
-                                    f"CTE: {cte.as_json()}"
-                                )
                                 # Wildcard refers to a CTE. Analyze it.
                                 self._analyze_result_columns(cte)
                             else:
