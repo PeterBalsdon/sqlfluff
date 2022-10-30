@@ -200,7 +200,7 @@ class Query:
                     if cte:
                         # It's a CTE.
                         yield cte
-                        #continue
+                        continue
                 # It's an external table OR subquery
                 if return_segment:
                     yield seg

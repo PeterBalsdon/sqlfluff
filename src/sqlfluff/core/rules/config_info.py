@@ -202,6 +202,12 @@ STANDARD_CONFIG_INFO_DICT = {
         "validation": ["single", "multiple"],
         "definition": "Treatment of wildcards. Defaults to ``single``.",
     },
+    "force_schemas": {
+        "validation": [True, False],
+        "definition": (
+            "If ``True``, requires every table to be referenced with a schema."
+        ),
+    },
 }
 
 

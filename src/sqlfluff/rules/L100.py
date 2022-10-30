@@ -16,6 +16,7 @@ _START_TYPES = [
 ]
 
 @document_groups
+@document_configuration
 class Rule_L100(BaseRule):
     """Enforce schemas to be specified in table references
 
@@ -46,6 +47,7 @@ class Rule_L100(BaseRule):
     """
 
     groups = ("all",)
+    config_keywords = ["force_schemas"]
     crawl_behaviour = SegmentSeekerCrawler(set(_START_TYPES))
 
     def _validate_reference_qualified(self, table_reference_segment):
@@ -84,6 +86,11 @@ class Rule_L100(BaseRule):
         return violations
 
     def _eval(self, context: RuleContext) -> Optional[LintResult]:
+        
+        self.force_schemas: Optional[bool]
+        
+        if not self.force_schemas:
+            return None
         """Recursively check any ctes"""
         if not FunctionalContext(context).parent_stack.any(sp.is_type(*_START_TYPES)):
             crawler = SelectCrawler(context.segment, context.dialect)
