@@ -204,9 +204,7 @@ STANDARD_CONFIG_INFO_DICT = {
     },
     "force_schemas": {
         "validation": [True, False],
-        "definition": (
-            "If ``True``, requires every table to be referenced with a schema."
-        ),
+        "definition": "If ``True``, requires every table to be referenced with a schema.",
     },
 }
 
